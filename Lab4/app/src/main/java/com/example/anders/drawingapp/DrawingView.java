@@ -84,8 +84,12 @@ public class DrawingView extends View {
 
     private void setupCircleObjects(){
         circleObjects = new ArrayList<CircleObject>();
-        CircleObject anObject = new CircleObject(300, 300, Color.BLUE);
+        CircleObject anObject = new CircleObject(300, 300, 1);
+        CircleObject anotherObject = new CircleObject(500, 300, 1);
+        CircleObject aThirdObject = new CircleObject(700, 300, 5);
         circleObjects.add(anObject);
+        circleObjects.add(anotherObject);
+        circleObjects.add(aThirdObject);
     }
 
     @Override
@@ -186,7 +190,7 @@ public class DrawingView extends View {
 
                     }
                     else drawCanvas.drawPath(drawPath1, drawPaint1);//Draw the Path onto the canvas
-                    if(CalculatingClass.isPointInPolygon(circleObjects.get(0), pointList1, getWidth())){
+                    if(CalculatingClass.checkObjects(circleObjects, pointList1, getWidth())){
                         Toast.makeText(mContext, "The object is inside.", Toast.LENGTH_SHORT).show();
                     }
                     else Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
@@ -202,7 +206,7 @@ public class DrawingView extends View {
 
                     }
                     else drawCanvas.drawPath(drawPath2, drawPaint2);
-                    if(CalculatingClass.isPointInPolygon(circleObjects.get(0), pointList2, getWidth())){
+                    if(CalculatingClass.checkObjects(circleObjects, pointList2, getWidth())){
                         Toast.makeText(mContext, "The object is inside.", Toast.LENGTH_SHORT).show();
                     }
                     else Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
@@ -226,7 +230,8 @@ public class DrawingView extends View {
 
                     }
                     else drawCanvas.drawPath(drawPath1, drawPaint1);//Draw the Path onto the canvas
-                    if(CalculatingClass.isPointInPolygon(circleObjects.get(0), pointList1, getWidth())){
+
+                    if(CalculatingClass.checkObjects(circleObjects, pointList1, getWidth())){
                         Toast.makeText(mContext, "The object is inside.", Toast.LENGTH_SHORT).show();
                     }
                     else Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
@@ -237,12 +242,14 @@ public class DrawingView extends View {
                 }
                 else if(activePointerId == pointer_2_id){
                     drawPath2.lineTo(pointList2.get(0).x, pointList2.get(0).y);
+
+                    //Might be able to skip this
                     if(CalculatingClass.crossCheck(pointList2, pointList1, true)){
                         //Toast.makeText(mContext, "Intersection discovered", Toast.LENGTH_LONG).show();
                         pointer_2_id = -1;
                     }
                     else drawCanvas.drawPath(drawPath2, drawPaint2);
-                    if(CalculatingClass.isPointInPolygon(circleObjects.get(0), pointList2, getWidth())){
+                    if(CalculatingClass.checkObjects(circleObjects, pointList2, getWidth())){
                         Toast.makeText(mContext, "The object is inside.", Toast.LENGTH_SHORT).show();
                     }
                     else Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();

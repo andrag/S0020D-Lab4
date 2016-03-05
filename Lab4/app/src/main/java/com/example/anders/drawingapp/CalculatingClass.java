@@ -125,7 +125,7 @@ public class CalculatingClass {
         return true;
     }
 
-
+    //http://alienryderflex.com/polygon/
     public static boolean isPointInPolygon(CircleObject object, ArrayList<PointF> list, int screenWidth){
         /* The Algorithm
             1. Get the objects y-coordinate
@@ -144,14 +144,52 @@ public class CalculatingClass {
 
         for(int i = 0; i < list.size()-1; i++){
             //Check if the objects y-coordinate is within the interval of the line segment that is checked for intersection
-            if(object.y >= Math.min(list.get(i).y, list.get(i+1).y) && object.y <= Math.max(list.get(i).y, list.get(i).y)){
+
+            //The following check doesnät work for some wierd reason...
+            //if(object.y >= Math.min(list.get(i).y, list.get(i+1).y) && object.y <= Math.max(list.get(i).y, list.get(i).y)){
                 if(isIntersecting(objectPosition, screenLeft, list.get(i), list.get(i+1))) intersectionsLeft++;
                 else if(isIntersecting(objectPosition, screenRight, list.get(i), list.get(i+1))) intersectionsRight++;
+            //}
+        }
+        //Don't forget to check against the last segment separately
+        if(isIntersecting(objectPosition, screenLeft, list.get(list.size()-1), list.get(0))) intersectionsLeft++;
+        else if(isIntersecting(objectPosition, screenRight, list.get(list.size()-1), list.get(0))) intersectionsRight++;
+
+        //if(intersectionsLeft == 0 && intersectionsRight == 0) return false;
+        if(intersectionsLeft % 2 == 0 && intersectionsRight % 2 == 0) return false;
+        else return true;
+    }
+
+    public static boolean checkObjects(ArrayList<CircleObject> objectList, ArrayList<PointF> pointList, int screenWidth){
+        //Array to fill with circled objects if same color
+        ArrayList<CircleObject> circledObjects = new ArrayList<CircleObject>();
+
+        //Perform pointInPolygon check for each object
+        for(CircleObject object : objectList){
+            if(isPointInPolygon(object, pointList, screenWidth)){
+
+                //Check if the object discovered within the drawn shape is of the same color as the others discovered
+                if(!circledObjects.isEmpty()){
+                    if(circledObjects.get(0).type.equals(object.type)){//This comparison is failing
+                        circledObjects.add(object);
+                    } else {
+                        return false;
+                    }
+                } else {
+                    circledObjects.add(object);
+                }
             }
+
+        }
+        if(circledObjects.isEmpty()) return false;
+        else{
+            mergeObjects(circledObjects);
+            return true;
         }
 
-        if(intersectionsLeft == 0 && intersectionsRight == 0) return false;
-        else if(intersectionsLeft % 2 == 0 && intersectionsRight % 2 == 0) return false;
-        else return true;
+    }
+
+    private static void mergeObjects(ArrayList<CircleObject> objectsList){
+
     }
 }
