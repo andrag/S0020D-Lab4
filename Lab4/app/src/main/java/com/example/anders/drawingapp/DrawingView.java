@@ -1,7 +1,5 @@
 package com.example.anders.drawingapp;
 
-import android.graphics.Color;
-import android.graphics.Point;
 import android.graphics.PointF;
 import android.support.v4.view.MotionEventCompat;
 import android.view.View;
@@ -13,7 +11,6 @@ import android.graphics.Path;
 import android.graphics.Bitmap;
 import android.view.MotionEvent;
 import android.widget.Toast;
-
 import java.util.ArrayList;
 
 
@@ -41,6 +38,8 @@ public class DrawingView extends View {
     private final int MAX_FINGERS = 2;
     private ArrayList<PointF> pointList1, pointList2;
     private ArrayList<CircleObject> circleObjects;
+    private ArrayList<DrawnShape> drawnShapes;//Stores drawn shapes for fade animation
+    private ArrayList<Integer> shapesToRemove;
 
 
     //Constructor
@@ -49,6 +48,8 @@ public class DrawingView extends View {
         mContext = context;
         setupDrawing();
         setupCircleObjects();
+        drawnShapes = new ArrayList<DrawnShape>();
+        shapesToRemove = new ArrayList<Integer>();
     }
 
     private void setupDrawing() {
@@ -110,6 +111,27 @@ public class DrawingView extends View {
                 canvas.drawCircle(object.x, object.y, object.radius, objectPaint);
             }
         }
+        if(!drawnShapes.isEmpty()){
+            fadeAnimation(canvas);
+        }
+    }
+
+
+
+    private void fadeAnimation(Canvas canvas){
+        for(DrawnShape shape : drawnShapes){
+            if(shape.isVisible){
+                canvas.drawPath(shape.getPath(), shape.getPaint());
+                shape.decreaseOpacity();
+                if(!shape.isVisible) shapesToRemove.add(drawnShapes.indexOf(shape));//Should be done faster with index for loop?
+            }
+        }
+        if(!shapesToRemove.isEmpty()){
+            for(Integer i : shapesToRemove){
+                drawnShapes.remove(i);
+            }
+            shapesToRemove.clear();
+        }
     }
 
 
@@ -136,7 +158,6 @@ public class DrawingView extends View {
                     break;
                 }
                 else if(drawPath2.isEmpty()){
-                    //activePointerId = event.getPointerId(index);
                     pointer_2_id = event.getPointerId(index);//This should not be ever changing.
                     drawPath2.moveTo(event.getX(index), event.getY(index));
                     PointF point = new PointF(event.getX(index), event.getY(index));
@@ -150,69 +171,63 @@ public class DrawingView extends View {
             case MotionEvent.ACTION_MOVE:
                 for(int i = 0; i < nmbrOfPointersDown; i++){
                     if(event.getPointerId(i)==pointer_1_id){
-                        //Move operations on the first
                         drawPath1.lineTo(event.getX(i), event.getY(i));
                         PointF point = new PointF(event.getX(i), event.getY(i));
                         pointList1.add(point);
                         if(CalculatingClass.crossCheck(pointList1, pointList2, false)){
-                            //Toast.makeText(mContext, "Intersection discovered", Toast.LENGTH_LONG).show();
-                            pointer_1_id = INVALID_ID;
-                            pointList1.clear();
-                            drawPath1.reset();
+                            clearPath(drawPath1, pointList1, 1);
+
                             break;
                         }
                     }
                     else if(event.getPointerId(i) == pointer_2_id){
-                        //Move operations on the second
-                        //Toast.makeText(mContext, "Went into drawpath2 ActionPOinter move directly", Toast.LENGTH_SHORT).show();
                         drawPath2.lineTo(event.getX(i), event.getY(i));
                         PointF point = new PointF(event.getX(i), event.getY(i));
                         pointList2.add(point);
                         if(CalculatingClass.crossCheck(pointList2, pointList1, false)){
-                            //Toast.makeText(mContext, "Intersection discovered", Toast.LENGTH_LONG).show();
-                            pointer_2_id = INVALID_ID;
-                            pointList2.clear();
-                            drawPath2.reset();
+                            clearPath(drawPath2, pointList2, 2);
                             break;
                         }
                     }
                 }
                 break;
 
-            //Need to call the algorithms in a thread-safe manner? Probably not since they are working on their own lists.
-            //But maybe to not block graphics?
             //ACTION_POINTER_UP is for non-primary pointers
             case MotionEvent.ACTION_POINTER_UP:
                 if(activePointerId == pointer_1_id){
-                    drawPath1.lineTo(pointList1.get(0).x, pointList1.get(0).y);
-                    if(CalculatingClass.crossCheck(pointList1, pointList2, true)){
-                        //Toast.makeText(mContext, "Intersection discovered", Toast.LENGTH_LONG).show();
-
+                    if(!drawPath1.isEmpty()){
+                        drawPath1.lineTo(pointList1.get(0).x, pointList1.get(0).y);
+                        if(CalculatingClass.crossCheck(pointList1, pointList2, true)){
+                            clearPath(drawPath1, pointList1, 1);
+                            break;
+                        }
+                        //else drawCanvas.drawPath(drawPath1, drawPaint1);//Draw the Path onto the canvas
+                        if(CalculatingClass.checkObjects(circleObjects, pointList1, getWidth())){
+                            Toast.makeText(mContext, "The object is inside.", Toast.LENGTH_SHORT).show();
+                        }
+                        else Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
+                        DrawnShape newShape = new DrawnShape(pointList1, paintColor1);
+                        drawnShapes.add(newShape);
+                        clearPath(drawPath1, pointList1, 1);
                     }
-                    else drawCanvas.drawPath(drawPath1, drawPaint1);//Draw the Path onto the canvas
-                    if(CalculatingClass.checkObjects(circleObjects, pointList1, getWidth())){
-                        Toast.makeText(mContext, "The object is inside.", Toast.LENGTH_SHORT).show();
-                    }
-                    else Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
-                    pointList1.clear();
-                    drawPath1.reset();
-                    pointer_1_id = -1;
                     break;
                 }
                 else if(activePointerId == pointer_2_id){
-                    drawPath2.lineTo(pointList2.get(0).x, pointList2.get(0).y);
-                    if(CalculatingClass.crossCheck(pointList2, pointList1, true)){
-                        //Toast.makeText(mContext, "Intersection discovered", Toast.LENGTH_LONG).show();
-
+                    if(!drawPath2.isEmpty()){
+                        drawPath2.lineTo(pointList2.get(0).x, pointList2.get(0).y);
+                        if(CalculatingClass.crossCheck(pointList2, pointList1, true)){
+                            clearPath(drawPath2, pointList2, 2);
+                            break;
+                        }
+                        //else drawCanvas.drawPath(drawPath2, drawPaint2);
+                        if(CalculatingClass.checkObjects(circleObjects, pointList2, getWidth())){
+                            Toast.makeText(mContext, "The object is inside.", Toast.LENGTH_SHORT).show();
+                        }
+                        else Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
+                        DrawnShape newShape = new DrawnShape(pointList2, paintColor2);
+                        drawnShapes.add(newShape);
+                        clearPath(drawPath2, pointList2, 2);
                     }
-                    else drawCanvas.drawPath(drawPath2, drawPaint2);
-                    if(CalculatingClass.checkObjects(circleObjects, pointList2, getWidth())){
-                        Toast.makeText(mContext, "The object is inside.", Toast.LENGTH_SHORT).show();
-                    }
-                    else Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
-                    pointList2.clear();
-                    drawPath2.reset();
-                    pointer_2_id = -1;
                     break;
                 }
                 break;
@@ -220,42 +235,38 @@ public class DrawingView extends View {
 
             //ACTION_UP is for the last pointer that leaves the screen
             case MotionEvent.ACTION_UP:
-                //Track the last position here and draw a line to the first point.
-                //index = MotionEventCompat.getActionIndex(event);//This pointers index
-                //activePointerId = MotionEventCompat.getPointerId(event, index);
                 if(activePointerId == pointer_1_id){
-                    drawPath1.lineTo(pointList1.get(0).x, pointList1.get(0).y);
-                    if(CalculatingClass.crossCheck(pointList1, pointList2, true)){
-                        //Toast.makeText(mContext, "Intersection discovered", Toast.LENGTH_LONG).show();
-
+                    if(!drawPath1.isEmpty()){
+                        drawPath1.lineTo(pointList1.get(0).x, pointList1.get(0).y);
+                        if(CalculatingClass.crossCheck(pointList1, pointList2, true)){
+                            clearPath(drawPath1, pointList1, 1);
+                            break;
+                        }
+                        if(CalculatingClass.checkObjects(circleObjects, pointList1, getWidth())){
+                            Toast.makeText(mContext, "The object is inside.", Toast.LENGTH_SHORT).show();
+                        }
+                        else Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
+                        DrawnShape newShape = new DrawnShape(pointList1, paintColor1);
+                        drawnShapes.add(newShape);
+                        clearPath(drawPath1, pointList1, 1);
                     }
-                    else drawCanvas.drawPath(drawPath1, drawPaint1);//Draw the Path onto the canvas
-
-                    if(CalculatingClass.checkObjects(circleObjects, pointList1, getWidth())){
-                        Toast.makeText(mContext, "The object is inside.", Toast.LENGTH_SHORT).show();
-                    }
-                    else Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
-                    pointList1.clear();
-                    drawPath1.reset();
-                    pointer_1_id = -1;
                     break;
                 }
                 else if(activePointerId == pointer_2_id){
-                    drawPath2.lineTo(pointList2.get(0).x, pointList2.get(0).y);
-
-                    //Might be able to skip this
-                    if(CalculatingClass.crossCheck(pointList2, pointList1, true)){
-                        //Toast.makeText(mContext, "Intersection discovered", Toast.LENGTH_LONG).show();
-                        pointer_2_id = -1;
+                    if(!drawPath2.isEmpty()){
+                        drawPath2.lineTo(pointList2.get(0).x, pointList2.get(0).y);
+                        if(CalculatingClass.crossCheck(pointList2, pointList1, true)){
+                            clearPath(drawPath2, pointList2, 2);
+                            break;
+                        }
+                        if(CalculatingClass.checkObjects(circleObjects, pointList2, getWidth())){
+                            Toast.makeText(mContext, "The object is inside.", Toast.LENGTH_SHORT).show();
+                        }
+                        else Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
+                        DrawnShape newShape = new DrawnShape(pointList2, paintColor2);
+                        drawnShapes.add(newShape);
+                        clearPath(drawPath2, pointList2, 2);
                     }
-                    else drawCanvas.drawPath(drawPath2, drawPaint2);
-                    if(CalculatingClass.checkObjects(circleObjects, pointList2, getWidth())){
-                        Toast.makeText(mContext, "The object is inside.", Toast.LENGTH_SHORT).show();
-                    }
-                    else Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
-                    pointList2.clear();
-                    drawPath2.reset();
-                    pointer_2_id = -1;
                     break;
                 }
                 break;
@@ -265,5 +276,22 @@ public class DrawingView extends View {
 
         invalidate();
         return true;
+    }
+
+
+
+    //This method clears a drawn shape from the UI
+    private void clearPath(Path drawnPath, ArrayList<PointF> pointList, int pointerId){
+        drawnPath.reset();
+        pointList.clear();
+
+        //Since parameters are passed by value we need to modify the original global id and cannot change it by passing it to this method as an argument
+        switch (pointerId){
+            case 1:
+                pointer_1_id = INVALID_ID;
+                break;
+            case 2:
+                pointer_2_id = INVALID_ID;
+        }
     }
 }
