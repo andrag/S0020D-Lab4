@@ -7,21 +7,17 @@ import android.graphics.Color;
  */
 public class CircleObject {
 
-    int color, timesOriginalSize;
+    int color, weight, colorDecider;
     float x, y, radius;
     double area;
-    ObjectType type;
-
-    public enum ObjectType {
-        BLUE, YELLOW, GREEN, RED, BLACK
-    }
 
     public CircleObject(float x, float y, int color){
         this.x = x;
         this.y = y;
         radius = 50;
-        timesOriginalSize = 1;
+        weight = 1;
         area = setArea();
+        colorDecider = color;
         setColor(color);
     }
 
@@ -31,34 +27,29 @@ public class CircleObject {
         switch (color){
             case 1:
                 this.color = Color.BLUE;
-                type = ObjectType.BLUE;
                 break;
             case 2:
                 this.color = Color.YELLOW;
-                type = ObjectType.YELLOW;
                 break;
             case 3:
                 this.color = Color.GREEN;
-                type = ObjectType.GREEN;
                 break;
             case 4:
                 this.color = Color.RED;
-                type = ObjectType.RED;
                 break;
             case 5:
                 this.color = Color.BLACK;
-                type = ObjectType.BLACK;
                 break;
         }
     }
 
 
-    public int getTimesOriginalSize(){
-        return timesOriginalSize;
+    public int getWeight(){
+        return weight;
     }
 
-    public void setTimesOriginalSize(int i){
-        timesOriginalSize += i;
+    public void setWeight(int i){
+        weight += i;
     }
 
     private double setArea(){

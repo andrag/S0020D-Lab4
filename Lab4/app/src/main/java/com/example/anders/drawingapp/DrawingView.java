@@ -40,6 +40,7 @@ public class DrawingView extends View {
     private ArrayList<CircleObject> circleObjects;
     private ArrayList<DrawnShape> drawnShapes;//Stores drawn shapes for fade animation
     private ArrayList<Integer> shapesToRemove;
+    private ArrayList<CircleObject> capturedObjects1, capturedObjects2;
 
 
     //Constructor
@@ -50,6 +51,8 @@ public class DrawingView extends View {
         setupCircleObjects();
         drawnShapes = new ArrayList<DrawnShape>();
         shapesToRemove = new ArrayList<Integer>();
+        capturedObjects1 = new ArrayList<CircleObject>();
+        capturedObjects2 = new ArrayList<CircleObject>();
     }
 
     private void setupDrawing() {
@@ -86,8 +89,8 @@ public class DrawingView extends View {
     private void setupCircleObjects(){
         circleObjects = new ArrayList<CircleObject>();
         CircleObject anObject = new CircleObject(300, 300, 1);
-        CircleObject anotherObject = new CircleObject(500, 300, 1);
-        CircleObject aThirdObject = new CircleObject(700, 300, 5);
+        CircleObject anotherObject = new CircleObject(500, 300, 4);
+        CircleObject aThirdObject = new CircleObject(700, 700, 1);
         circleObjects.add(anObject);
         circleObjects.add(anotherObject);
         circleObjects.add(aThirdObject);
@@ -202,8 +205,10 @@ public class DrawingView extends View {
                             break;
                         }
                         //else drawCanvas.drawPath(drawPath1, drawPaint1);//Draw the Path onto the canvas
-                        if(CalculatingClass.checkObjects(circleObjects, pointList1, getWidth())){
+                        capturedObjects1 = CalculatingClass.checkObjects(circleObjects, pointList1, getWidth());
+                        if(capturedObjects1 != null){
                             Toast.makeText(mContext, "The object is inside.", Toast.LENGTH_SHORT).show();
+                            mergeObjects(capturedObjects1);
                         }
                         else Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
                         DrawnShape newShape = new DrawnShape(pointList1, paintColor1);
@@ -220,8 +225,10 @@ public class DrawingView extends View {
                             break;
                         }
                         //else drawCanvas.drawPath(drawPath2, drawPaint2);
-                        if(CalculatingClass.checkObjects(circleObjects, pointList2, getWidth())){
+                        capturedObjects2 = CalculatingClass.checkObjects(circleObjects, pointList2, getWidth());
+                        if(capturedObjects2 != null){
                             Toast.makeText(mContext, "The object is inside.", Toast.LENGTH_SHORT).show();
+                            mergeObjects(capturedObjects2);
                         }
                         else Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
                         DrawnShape newShape = new DrawnShape(pointList2, paintColor2);
@@ -242,8 +249,10 @@ public class DrawingView extends View {
                             clearPath(drawPath1, pointList1, 1);
                             break;
                         }
-                        if(CalculatingClass.checkObjects(circleObjects, pointList1, getWidth())){
+                        capturedObjects1 = CalculatingClass.checkObjects(circleObjects, pointList1, getWidth());
+                        if(capturedObjects1 != null){
                             Toast.makeText(mContext, "The object is inside.", Toast.LENGTH_SHORT).show();
+                            mergeObjects(capturedObjects1);
                         }
                         else Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
                         DrawnShape newShape = new DrawnShape(pointList1, paintColor1);
@@ -259,8 +268,10 @@ public class DrawingView extends View {
                             clearPath(drawPath2, pointList2, 2);
                             break;
                         }
-                        if(CalculatingClass.checkObjects(circleObjects, pointList2, getWidth())){
+                        capturedObjects2 = CalculatingClass.checkObjects(circleObjects, pointList2, getWidth());
+                        if(capturedObjects2 != null){
                             Toast.makeText(mContext, "The object is inside.", Toast.LENGTH_SHORT).show();
+                            mergeObjects(capturedObjects2);
                         }
                         else Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
                         DrawnShape newShape = new DrawnShape(pointList2, paintColor2);
@@ -292,6 +303,28 @@ public class DrawingView extends View {
                 break;
             case 2:
                 pointer_2_id = INVALID_ID;
+        }
+    }
+
+
+    private void mergeObjects(ArrayList<CircleObject> involvedObjects){
+        if(involvedObjects.size() > 1){
+            float[] newValues = CalculatingClass.newObjectValues(involvedObjects);
+            int color = involvedObjects.get(0).colorDecider;//involvedObjects.get(0).color;
+
+            float newRadius = newValues[0];
+            float newX = newValues[1];
+            float newY = newValues[2];
+
+            CircleObject newObject = new CircleObject(newX, newY, color);
+            newObject.radius = newRadius;
+
+            circleObjects.add(newObject);
+
+            for(CircleObject object : involvedObjects){
+                circleObjects.remove(object);
+            }
+            invalidate();
         }
     }
 }

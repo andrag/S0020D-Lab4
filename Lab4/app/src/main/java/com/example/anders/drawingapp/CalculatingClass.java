@@ -12,13 +12,26 @@ public class CalculatingClass {
 
 
     //Calculates a new radius based on the sizes of the CircleObjects that are to be mashed together
-    public static float newObjectRadius(int multiplier, ArrayList<CircleObject> involvedObjects){
+    public static float[] newObjectValues(ArrayList<CircleObject> involvedObjects){
         double area = 0;
+        double totalWeight = 0;
+        double totalX = 0;
+        double totalY = 0;
+
+
         for(CircleObject object : involvedObjects){
             area += object.getArea();
+            totalWeight += object.getWeight();
+            totalX += (object.x * object.getWeight());
+            totalY += (object.y * object.getWeight());
         }
         double newRadius = Math.sqrt(area/Math.PI);
-        return (float) newRadius;
+        double newX = totalX/totalWeight;
+        double newY = totalY/totalWeight;
+
+        float[] returnArray = {(float)newRadius, (float)newX, (float)newY};
+
+        return returnArray;
     }
 
 
@@ -160,7 +173,7 @@ public class CalculatingClass {
         else return true;
     }
 
-    public static boolean checkObjects(ArrayList<CircleObject> objectList, ArrayList<PointF> pointList, int screenWidth){
+    public static ArrayList<CircleObject> checkObjects(ArrayList<CircleObject> objectList, ArrayList<PointF> pointList, int screenWidth){
         //Array to fill with circled objects if same color
         ArrayList<CircleObject> circledObjects = new ArrayList<CircleObject>();
 
@@ -170,10 +183,10 @@ public class CalculatingClass {
 
                 //Check if the object discovered within the drawn shape is of the same color as the others discovered
                 if(!circledObjects.isEmpty()){
-                    if(circledObjects.get(0).type.equals(object.type)){//This comparison is failing
+                    if(circledObjects.get(0).colorDecider == object.colorDecider){//This comparison is failing
                         circledObjects.add(object);
                     } else {
-                        return false;
+                        return null;
                     }
                 } else {
                     circledObjects.add(object);
@@ -181,15 +194,10 @@ public class CalculatingClass {
             }
 
         }
-        if(circledObjects.isEmpty()) return false;
+        if(circledObjects.isEmpty()) return null;
         else{
-            mergeObjects(circledObjects);
-            return true;
+            return circledObjects;
         }
-
-    }
-
-    private static void mergeObjects(ArrayList<CircleObject> objectsList){
 
     }
 }
