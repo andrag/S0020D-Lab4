@@ -5,17 +5,23 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.util.ArrayList;
+
 public class MainActivity extends ActionBarActivity {
 
-    private DrawingView drawView;
+    private GameView gameView;
+    private ArrayList<CircleObject> loadObjects;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        //setContentView(R.layout.activity_main);
+        //loadObjects = new ArrayList<CircleObject>();
+        gameView = new GameView(this);//, loadObjects);
+        setContentView(gameView);
 
-        drawView = (DrawingView) findViewById(R.id.drawing);
+        //drawView = (GameView) findViewById(R.id.drawing);
     }
 
     @Override
@@ -38,5 +44,19 @@ public class MainActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        gameView.pauseGame();
+
+
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        gameView.resumeGame();
     }
 }

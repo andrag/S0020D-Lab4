@@ -4,6 +4,7 @@ import android.graphics.Point;
 import android.graphics.PointF;
 
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * Created by Anders on 2016-03-04.
@@ -12,11 +13,14 @@ public class CalculatingClass {
 
 
     //Calculates a new radius based on the sizes of the CircleObjects that are to be mashed together
-    public static float[] newObjectValues(ArrayList<CircleObject> involvedObjects){
+    //http://www.geomidpoint.com/calculation.html
+    public static Object[] newObjectValues(ArrayList<CircleObject> involvedObjects){
         double area = 0;
-        double totalWeight = 0;
+        int totalWeight = 0;
         double totalX = 0;
         double totalY = 0;
+        double totalSpeedX = 0;
+        double totalSppedY = 0;
 
 
         for(CircleObject object : involvedObjects){
@@ -24,12 +28,16 @@ public class CalculatingClass {
             totalWeight += object.getWeight();
             totalX += (object.x * object.getWeight());
             totalY += (object.y * object.getWeight());
+            totalSpeedX += object.speedX;
+            totalSppedY += object.speedY;
         }
         double newRadius = Math.sqrt(area/Math.PI);
         double newX = totalX/totalWeight;
         double newY = totalY/totalWeight;
+        int newSpeedX = (int) totalSpeedX/involvedObjects.size();
+        int newSpeedY = (int) totalSppedY/involvedObjects.size();
 
-        float[] returnArray = {(float)newRadius, (float)newX, (float)newY};
+        Object[] returnArray = {(float)newRadius, (float)newX, (float)newY, newSpeedX, newSpeedY, totalWeight};
 
         return returnArray;
     }
@@ -200,4 +208,19 @@ public class CalculatingClass {
         }
 
     }
+
+
+    /*public static ArrayList<ScoreObject> sortHighScore(ArrayList<ScoreObject> highScore){
+        if(highScore.size() > 1){
+            int x;
+            int j;
+            for(int i = 1; i < highScore.size(); i++){
+                x = highScore.get(i);
+                j = i - 1;
+                while( j >= 0 && highScore.get(j) > x){
+                    highScore.i
+                }
+            }
+        }
+    }*/
 }

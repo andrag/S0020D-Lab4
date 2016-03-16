@@ -29,6 +29,7 @@ public class DrawnShape {
         drawPath = new Path();
         animPaint = new Paint();
 
+
         animPaint.setColor(color);
         animPaint.setAntiAlias(true);
         animPaint.setStrokeWidth(20);

@@ -1,24 +1,37 @@
 package com.example.anders.drawingapp;
 
+import android.graphics.Bitmap;
 import android.graphics.Color;
+
+import java.util.Random;
 
 /**
  * Created by Anders on 2016-03-04.
  */
 public class CircleObject {
 
-    int color, weight, colorDecider;
+    int color, weight, colorDecider, speedX, speedY;
+    long changeInterval;
     float x, y, radius;
     double area;
+    Random rand;
+    GameView gameView;
+    Bitmap bitmap;
 
-    public CircleObject(float x, float y, int color){
+    public CircleObject(GameView view, float x, float y, int color){
+        this.gameView = view;
         this.x = x;
         this.y = y;
+        rand = new Random();
+        speedX = 0;
+        speedY = 0;
         radius = 50;
         weight = 1;
-        area = setArea();
         colorDecider = color;
+        setArea();
         setColor(color);
+        setInitSpeed();
+        setChangeInterval();
     }
 
 
@@ -43,21 +56,62 @@ public class CircleObject {
         }
     }
 
+    public void update(int height, int width){
+        changeInterval++;
+
+        if(x > gameView.getWidth() - speedX || x + speedX < 0 || changeInterval > 500) {
+            //x = gameView.getWidth() - 2*radius;
+            speedX = -speedX;
+        }
+        x = x + speedX;
+
+        if(y > gameView.getHeight() - speedY || y + speedY < 0 || changeInterval > 500) {
+            speedY = -speedY;
+        }
+        if(changeInterval > 200){
+            setChangeInterval();
+            setNewSpeed();
+        }
+
+        y = y +speedY;
+    }
+
 
     public int getWeight(){
         return weight;
     }
 
-    public void setWeight(int i){
-        weight += i;
-    }
-
-    private double setArea(){
-        return radius * radius * Math.PI;
+    public void setArea(){
+        area = radius * radius * Math.PI;
     }
 
     public double getArea(){
         return area;
+    }
+
+    public void setSpeedX(int s){
+        speedX = s;
+    }
+
+    public void setSpeedY(int s){
+        speedY = s;
+    }
+
+    private void setInitSpeed(){
+        //Random rand = new Random();
+        speedX = 6 - rand.nextInt(11);
+        speedY = 6 - rand.nextInt(11);
+    }
+
+    private void setChangeInterval(){
+        //Random rand = new Random();
+        changeInterval = rand.nextInt(200);
+    }
+
+    private void setNewSpeed(){
+        //Random rand = new Random();
+        speedX = 8 - rand.nextInt(15);
+        speedY = 8 - rand.nextInt(15);
     }
 
 }
