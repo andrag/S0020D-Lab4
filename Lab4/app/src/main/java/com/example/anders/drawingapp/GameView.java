@@ -140,18 +140,18 @@ public class GameView extends SurfaceView {
 
         //Set the initial Paint properties
         objectPaint.setStyle(Paint.Style.FILL);
-        objectPaint.setTextSize(50f);
+        objectPaint.setTextSize(dpFromPixel(10f));
 
         drawPaint1.setColor(paintColor1);
         drawPaint1.setAntiAlias(true);
-        drawPaint1.setStrokeWidth(20);
+        drawPaint1.setStrokeWidth(dpFromPixel(10));
         drawPaint1.setStyle(Paint.Style.STROKE);
         drawPaint1.setStrokeJoin(Paint.Join.ROUND);
         drawPaint1.setStrokeCap(Paint.Cap.ROUND);
 
         drawPaint2.setColor(paintColor2);
         drawPaint2.setAntiAlias(true);
-        drawPaint2.setStrokeWidth(20);
+        drawPaint2.setStrokeWidth(dpFromPixel(10));
         drawPaint2.setStyle(Paint.Style.STROKE);
         drawPaint2.setStrokeJoin(Paint.Join.ROUND);
         drawPaint2.setStrokeCap(Paint.Cap.ROUND);
@@ -164,6 +164,7 @@ public class GameView extends SurfaceView {
 
     private void setupBitmaps(){
         splashScreen = BitmapFactory.decodeResource(getResources(), R.drawable.hattman);
+
     }
 
     private void setupCircleObjects() {
@@ -175,6 +176,9 @@ public class GameView extends SurfaceView {
             for (int i = 0; i < NUMBER_OF_OBJECTS; i++) {
                 x = (float) rand.nextInt(getWidth());
                 y = (float) rand.nextInt(getHeight());
+                //x = dpFromPixel(x);
+                //y = dpFromPixel(y);
+
                 color = rand.nextInt(5) + 1;//is this 1 - 5???
                 CircleObject anObject = new CircleObject(this, x, y, color);
                 objectsLeft[color-1] += 1;//Increase number of objects of this color
@@ -251,6 +255,7 @@ public class GameView extends SurfaceView {
                 fadeAnimation(canvas);
             }
             objectPaint.setColor(Color.BLACK);
+            objectPaint.setTextSize(dpFromPixel(20));
             canvas.drawText("Score: " + score, 10 * (getWidth() / 12), 11 * (getHeight() / 12), objectPaint);
             canvas.drawText("Time: " + (currentTime-startTime)/1000, 6 * (getWidth() / 12), 11 * (getHeight() / 12), objectPaint);
 
@@ -263,7 +268,7 @@ public class GameView extends SurfaceView {
         if(!gameStarted && !gameFinished) {
             canvas.drawBitmap(splashScreen, 0, 0, objectPaint);
             objectPaint.setColor(Color.RED);
-            objectPaint.setTextSize(50f);
+            objectPaint.setTextSize(dpFromPixel(50f));//Move this. Unnecessary to set new each time
             objectPaint.setTextAlign(Paint.Align.CENTER);
             canvas.drawText("The head hunting water sculls!", getWidth()/2, getHeight()/2, objectPaint);
         }
@@ -274,12 +279,14 @@ public class GameView extends SurfaceView {
 
     }
 
+    //Unused
     private void resetGame(Canvas canvas){
         circleObjects.clear();
     }
 
     private void addToHighScore(){
         finishTime = (System.currentTimeMillis() - startTime)/1000;
+        if(score < 1) score++;
         int totalScore = (int)finishTime/score;
         currentTime = System.currentTimeMillis();
         String date = "date";
@@ -290,7 +297,7 @@ public class GameView extends SurfaceView {
 
     private void drawHighsCore(Canvas canvas){
         canvas.drawColor(Color.WHITE);
-        canvas.drawText("High score", getWidth()/2, getHeight()/2, objectPaint);
+        canvas.drawText("High score", getWidth() / 2, getHeight() / 2, objectPaint);
         for(ScoreObject so : highScore){
             canvas.drawText(Integer.toString(so.totalScore), getWidth()/2, 2*getHeight()/3, objectPaint);
         }
@@ -407,7 +414,7 @@ public class GameView extends SurfaceView {
                                     Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
                                     playSound(failSoundId);
                                 }
-                                DrawnShape newShape = new DrawnShape(pointList1, paintColor1);
+                                DrawnShape newShape = new DrawnShape(pointList1, paintColor1, this);
                                 drawnShapes.add(newShape);
                                 clearPath(drawPath1, pointList1, 1);
                             }
@@ -428,7 +435,7 @@ public class GameView extends SurfaceView {
                                     Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
                                     playSound(failSoundId);
                                 }
-                                DrawnShape newShape = new DrawnShape(pointList2, paintColor2);
+                                DrawnShape newShape = new DrawnShape(pointList2, paintColor2, this);
                                 drawnShapes.add(newShape);
                                 clearPath(drawPath2, pointList2, 2);
                             }
@@ -455,7 +462,7 @@ public class GameView extends SurfaceView {
                                     Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
                                     playSound(failSoundId);
                                 }
-                                DrawnShape newShape = new DrawnShape(pointList1, paintColor1);
+                                DrawnShape newShape = new DrawnShape(pointList1, paintColor1, this);
                                 drawnShapes.add(newShape);
                                 clearPath(drawPath1, pointList1, 1);
                             }
@@ -476,7 +483,7 @@ public class GameView extends SurfaceView {
                                     Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
                                     playSound(failSoundId);
                                 }
-                                DrawnShape newShape = new DrawnShape(pointList2, paintColor2);
+                                DrawnShape newShape = new DrawnShape(pointList2, paintColor2, this);
                                 drawnShapes.add(newShape);
                                 clearPath(drawPath2, pointList2, 2);
                             }
@@ -561,5 +568,10 @@ public class GameView extends SurfaceView {
     public void resumeGame(){
         //gameStarted = false;
         //gameLoop.setRunning(true);
+    }
+
+    public float dpFromPixel(float pixelValue){
+        final float scale = getResources().getDisplayMetrics().density;
+        return pixelValue * scale + 0.5f;
     }
 }

@@ -25,12 +25,12 @@ public class CircleObject {
         rand = new Random();
         speedX = 0;
         speedY = 0;
-        radius = 50;
+        radius = view.dpFromPixel(20);
         weight = 1;
         colorDecider = color;
         setArea();
         setColor(color);
-        setInitSpeed();
+        setNewSpeed();
         setChangeInterval();
     }
 
@@ -97,12 +97,6 @@ public class CircleObject {
         speedY = s;
     }
 
-    private void setInitSpeed(){
-        //Random rand = new Random();
-        speedX = 6 - rand.nextInt(11);
-        speedY = 6 - rand.nextInt(11);
-    }
-
     private void setChangeInterval(){
         //Random rand = new Random();
         changeInterval = rand.nextInt(200);
@@ -112,6 +106,8 @@ public class CircleObject {
         //Random rand = new Random();
         speedX = 8 - rand.nextInt(15);
         speedY = 8 - rand.nextInt(15);
+        speedX = (int)gameView.dpFromPixel(speedX);
+        speedY = (int)gameView.dpFromPixel(speedY);
     }
 
 }

@@ -13,13 +13,15 @@ public class DrawnShape {
 
     private ArrayList<PointF> pointList;
     private int opacity, color;
+    private GameView gameView;
     private Path drawPath;
     private Paint animPaint;
     public boolean isVisible;
 
-    public DrawnShape(ArrayList<PointF> pointList, int color){
+    public DrawnShape(ArrayList<PointF> pointList, int color, GameView gameView){
         this.pointList = pointList;
         this.color = color;
+        this.gameView = gameView;
         initShape();
     }
 
@@ -32,7 +34,7 @@ public class DrawnShape {
 
         animPaint.setColor(color);
         animPaint.setAntiAlias(true);
-        animPaint.setStrokeWidth(20);
+        animPaint.setStrokeWidth(gameView.dpFromPixel(10));
         animPaint.setStyle(Paint.Style.STROKE);
         animPaint.setStrokeJoin(Paint.Join.ROUND);
         animPaint.setStrokeCap(Paint.Cap.ROUND);
