@@ -16,13 +16,11 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Bitmap;
 import android.view.MotionEvent;
-import android.widget.Toast;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Date;
 import java.util.Random;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 
 /**
@@ -31,10 +29,10 @@ import java.util.concurrent.ConcurrentSkipListMap;
 //One of the purposes of the SurfaceView class is to provide a surface in which the GameLoop thread can render into the screen.
 public class GameView extends SurfaceView {
 
-    private Context mContext;
     private static GameLoop gameLoop;
     private SurfaceHolder holder;
     private boolean gameStarted = false;
+    private boolean gamePaused = false;
     private long startTime;
     private long currentTime;
     private long finishTime;
@@ -43,21 +41,18 @@ public class GameView extends SurfaceView {
     private Path drawPath1, drawPath2;//The Path class encapsulates compound geometric paths: straight line segments, curves and so on.
 
     //Paint objects to represent the canvas AND the drawing on top of it
-    private Paint canvasPaint, objectPaint, drawPaint1, drawPaint2;//The Paint class holds style and color info on how to draw geometries, texts and bitmaps.
+    private Paint objectPaint, drawPaint1, drawPaint2;//The Paint class holds style and color info on how to draw geometries, texts and bitmaps.
 
     private int paintColor1 = 0xFF660000;
     private int paintColor2 = 0xFF009600;
-    private Canvas drawCanvas;
-    private Bitmap canvasBitmap;
 
     private final int INVALID_ID = -1;
     private int pointer_1_id = INVALID_ID;
     private int pointer_2_id = INVALID_ID;
     private final int MAX_FINGERS = 2;
     private final int NUMBER_OF_OBJECTS = 5;
-    private int score = 0;
+    private int merges = 0;
     private ArrayList<ScoreObject> highScore;
-    private ConcurrentSkipListMap<Integer, String> highScore2;
     private ArrayList<PointF> pointList1, pointList2;
     private ArrayList<CircleObject> circleObjects;
     private ArrayList<DrawnShape> drawnShapes;//Stores drawn shapes for fade animation
@@ -73,12 +68,10 @@ public class GameView extends SurfaceView {
     private int mergeSoundId, failSoundId;
 
 
+
     //Constructor
     public GameView(Context context){//, ArrayList<CircleObject> loadObjects) {//, AttributeSet attrSet){
-        //super(context, attrSet);
         super(context);
-
-        mContext = context;
 
         drawnShapes = new ArrayList<DrawnShape>();
         shapesToRemove = new ArrayList<Integer>();
@@ -86,27 +79,21 @@ public class GameView extends SurfaceView {
         capturedObjects2 = new ArrayList<CircleObject>();
         circleObjects = new ArrayList<CircleObject>();
         highScore = new ArrayList<ScoreObject>();
-        highScore2 = new ConcurrentSkipListMap<Integer, String>();
         objectsLeft = new int[]{0,0,0,0,0};
         gameView = this;
         setupDrawing();
-        setupBitmaps();
-
-        //circleObjects = loadObjects;
 
         holder = getHolder();
         holder.addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
-
+                setupBitmaps();
                 initiateSoundPool();
                 setupCircleObjects();
                 gameLoop = new GameLoop(gameView);
-                //startGame();
                 gameLoop.setRunning(true);
                 gameLoop.start();
                 startTime = System.currentTimeMillis();
-                //gameStarted = true;
             }
 
             @Override
@@ -156,14 +143,16 @@ public class GameView extends SurfaceView {
         drawPaint2.setStrokeJoin(Paint.Join.ROUND);
         drawPaint2.setStrokeCap(Paint.Cap.ROUND);
 
-        canvasPaint = new Paint(Paint.DITHER_FLAG);//Set the dithering as a parameter for this one. Why? Don't know.
-
         pointList1 = new ArrayList<PointF>();
         pointList2 = new ArrayList<PointF>();
     }
 
     private void setupBitmaps(){
-        splashScreen = BitmapFactory.decodeResource(getResources(), R.drawable.hattman);
+        splashScreen = BitmapFactory.decodeResource(getResources(), R.drawable.splashscreen2);
+        double ratio = (double)getHeight()/(double)splashScreen.getHeight();
+        double newWidth = 0.9 * (double)splashScreen.getWidth() * ratio;
+        double newHeight = 0.9 * (double) getHeight();
+        splashScreen = Bitmap.createScaledBitmap(splashScreen, (int) newWidth, (int) newHeight, false);
 
     }
 
@@ -176,10 +165,8 @@ public class GameView extends SurfaceView {
             for (int i = 0; i < NUMBER_OF_OBJECTS; i++) {
                 x = (float) rand.nextInt(getWidth());
                 y = (float) rand.nextInt(getHeight());
-                //x = dpFromPixel(x);
-                //y = dpFromPixel(y);
 
-                color = rand.nextInt(5) + 1;//is this 1 - 5???
+                color = rand.nextInt(5) + 1;
                 CircleObject anObject = new CircleObject(this, x, y, color);
                 objectsLeft[color-1] += 1;//Increase number of objects of this color
                 circleObjects.add(anObject);
@@ -236,7 +223,6 @@ public class GameView extends SurfaceView {
     protected void onDraw(Canvas canvas) {
         if (gameStarted && !gameFinished) {
             currentTime = System.currentTimeMillis();
-            //canvas.drawBitmap(canvasBitmap, 0, 0, canvasPaint);
             canvas.drawColor(Color.WHITE);
             if (!circleObjects.isEmpty()) {
                 synchronized (circleObjects){
@@ -256,8 +242,8 @@ public class GameView extends SurfaceView {
             }
             objectPaint.setColor(Color.BLACK);
             objectPaint.setTextSize(dpFromPixel(20));
-            canvas.drawText("Score: " + score, 10 * (getWidth() / 12), 11 * (getHeight() / 12), objectPaint);
-            canvas.drawText("Time: " + (currentTime-startTime)/1000, 6 * (getWidth() / 12), 11 * (getHeight() / 12), objectPaint);
+            canvas.drawText("Merges: " + merges, 10 * (getWidth() / 12), 11 * (getHeight() / 12), objectPaint);
+            canvas.drawText("Time: " + (currentTime - startTime) / 1000, 6 * (getWidth() / 12), 11 * (getHeight() / 12), objectPaint);
 
             if(hasFinished()){
                 gameFinished = true;
@@ -265,42 +251,76 @@ public class GameView extends SurfaceView {
             }
         }
 
-        if(!gameStarted && !gameFinished) {
-            canvas.drawBitmap(splashScreen, 0, 0, objectPaint);
-            objectPaint.setColor(Color.RED);
-            objectPaint.setTextSize(dpFromPixel(50f));//Move this. Unnecessary to set new each time
-            objectPaint.setTextAlign(Paint.Align.CENTER);
-            canvas.drawText("The head hunting water sculls!", getWidth()/2, getHeight()/2, objectPaint);
+        if(!gameStarted && !gameFinished && !gamePaused) {
+            canvas.drawColor(Color.WHITE);
+            canvas.drawBitmap(splashScreen, getWidth()/2 - splashScreen.getWidth()/2, 0, objectPaint);
         }
         if(gameFinished && gameStarted){
-            drawHighsCore(canvas);
+            drawHighScore(canvas);
         }
         super.onDraw(canvas);
 
     }
 
-    //Unused
-    private void resetGame(Canvas canvas){
+
+    private void resetGame(){
+        objectsLeft = new int[]{0,0,0,0,0};
         circleObjects.clear();
+        drawnShapes.clear();
+        pointList1.clear();
+        pointList2.clear();
+        setupCircleObjects();
+        startTime = System.currentTimeMillis();
+        merges = 0;
+        gameFinished = false;
+        gameStarted = false;
     }
 
     private void addToHighScore(){
         finishTime = (System.currentTimeMillis() - startTime)/1000;
-        if(score < 1) score++;
-        int totalScore = (int)finishTime/score;
+        //if(merges == 0) merges = 1;
+        if(finishTime == 0)finishTime = 1;//Avoid having less CircleObjects than 6 since we have six colors.
+        int totalScore = (merges*100)/(int)finishTime;
         currentTime = System.currentTimeMillis();
-        String date = "date";
-        ScoreObject scoreObject = new ScoreObject(totalScore, finishTime, score, date);
+        String time = getCurrentTime();
+        ScoreObject scoreObject = new ScoreObject(totalScore, finishTime, merges, time);
         highScore.add(scoreObject);
         Collections.sort(highScore);
     }
 
-    private void drawHighsCore(Canvas canvas){
+    private void drawHighScore(Canvas canvas){
+
         canvas.drawColor(Color.WHITE);
-        canvas.drawText("High score", getWidth() / 2, getHeight() / 2, objectPaint);
-        for(ScoreObject so : highScore){
-            canvas.drawText(Integer.toString(so.totalScore), getWidth()/2, 2*getHeight()/3, objectPaint);
+        objectPaint.setTextAlign(Paint.Align.CENTER);
+        canvas.drawText("High Scores", getWidth() / 2, dpFromPixel(20), objectPaint);
+        objectPaint.setTextAlign(Paint.Align.LEFT);
+        canvas.drawText("Score", getWidth() / 10 - dpFromPixel(25), dpFromPixel(60), objectPaint);
+        canvas.drawText("Merges", 2*(getWidth()/10), dpFromPixel(60), objectPaint);
+        canvas.drawText("Time (sec)", 4*(getWidth()/10), dpFromPixel(60), objectPaint);
+        canvas.drawText("Finished", 7*(getWidth()/10), dpFromPixel(60), objectPaint);
+        if(highScore.size() >= 10){
+            highScore.remove(0);
         }
+        int offset = 20;
+        int row = 1;
+        objectPaint.setColor(Color.GREEN);
+            for(int i = highScore.size()-1; i > -1; i--){
+                if(dpFromPixel(70 + row * offset) < getHeight() - getHeight()/5){
+                    ScoreObject so = highScore.get(i);
+                    canvas.drawText(Integer.toString(so.totalScore), getWidth() / 10 - dpFromPixel(25), dpFromPixel(70 + row * offset), objectPaint);
+                    canvas.drawText(Integer.toString(so.score), 2 * getWidth() / 10, dpFromPixel(70 + row * offset), objectPaint);
+                    canvas.drawText(Long.toString(so.finishTime), 4*(getWidth()/10), dpFromPixel(70 + row * offset), objectPaint);
+                    canvas.drawText(so.time, 7*(getWidth()/10), dpFromPixel(70 + row * offset), objectPaint);
+                    row++;
+                }
+            }
+        objectPaint.setColor(Color.BLACK);
+        canvas.drawRect(dpFromPixel(10), getHeight() - getHeight() / 5, getWidth() - dpFromPixel(10), getHeight() - dpFromPixel(10), objectPaint);
+
+        objectPaint.setColor(Color.WHITE);
+        objectPaint.setTextAlign(Paint.Align.CENTER);
+        canvas.drawText("Restart game", getWidth() / 2, getHeight() - getHeight() / 10, objectPaint);
+        objectPaint.setColor(Color.BLACK);
     }
 
     private synchronized void drawShapes(Canvas canvas) {
@@ -323,26 +343,28 @@ public class GameView extends SurfaceView {
 
 
     private void fadeAnimation(Canvas canvas) {
-        for (DrawnShape shape : drawnShapes) {
-            if (shape.isVisible) {
-                canvas.drawPath(shape.getPath(), shape.getPaint());
-                shape.decreaseOpacity();
-                if (!shape.isVisible)
-                    shapesToRemove.add(drawnShapes.indexOf(shape));//Should be done faster with index for loop?
+        synchronized (drawnShapes){
+            for (DrawnShape shape : drawnShapes) {//ConcurrentModificationException
+                if (shape.isVisible) {
+                    canvas.drawPath(shape.getPath(), shape.getPaint());
+                    shape.decreaseOpacity();
+                    if (!shape.isVisible)
+                        shapesToRemove.add(drawnShapes.indexOf(shape));//Should be done faster with index for loop?
+                }
             }
-        }
-        if (!shapesToRemove.isEmpty()) {
-            for (Integer i : shapesToRemove) {
-                drawnShapes.remove(i);
+            if (!shapesToRemove.isEmpty()) {
+                for (Integer i : shapesToRemove) {
+                    drawnShapes.remove(i);
+                }
+                shapesToRemove.clear();
             }
-            shapesToRemove.clear();
         }
     }
 
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (gameStarted) {
+        if (gameStarted && !gameFinished) {
             synchronized (gameLoop) {
                 int pointerCount = event.getPointerCount();
                 int nmbrOfPointersDown = pointerCount >= MAX_FINGERS ? MAX_FINGERS : 1;//We only want to handle 1 or 2 pointers
@@ -408,10 +430,8 @@ public class GameView extends SurfaceView {
                                 }
                                 capturedObjects1 = CalculatingClass.checkObjects(circleObjects, pointList1, getWidth());
                                 if (capturedObjects1 != null) {
-                                    Toast.makeText(mContext, "The object is inside.", Toast.LENGTH_SHORT).show();
                                     mergeObjects(capturedObjects1);
                                 } else {
-                                    Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
                                     playSound(failSoundId);
                                 }
                                 DrawnShape newShape = new DrawnShape(pointList1, paintColor1, this);
@@ -429,10 +449,8 @@ public class GameView extends SurfaceView {
                                 }
                                 capturedObjects2 = CalculatingClass.checkObjects(circleObjects, pointList2, getWidth());
                                 if (capturedObjects2 != null) {
-                                    Toast.makeText(mContext, "The object is inside.", Toast.LENGTH_SHORT).show();
                                     mergeObjects(capturedObjects2);
                                 } else {
-                                    Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
                                     playSound(failSoundId);
                                 }
                                 DrawnShape newShape = new DrawnShape(pointList2, paintColor2, this);
@@ -456,10 +474,8 @@ public class GameView extends SurfaceView {
                                 }
                                 capturedObjects1 = CalculatingClass.checkObjects(circleObjects, pointList1, getWidth());
                                 if (capturedObjects1 != null) {
-                                    Toast.makeText(mContext, "The object is inside.", Toast.LENGTH_SHORT).show();
                                     mergeObjects(capturedObjects1);
                                 } else {
-                                    Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
                                     playSound(failSoundId);
                                 }
                                 DrawnShape newShape = new DrawnShape(pointList1, paintColor1, this);
@@ -477,10 +493,8 @@ public class GameView extends SurfaceView {
                                 }
                                 capturedObjects2 = CalculatingClass.checkObjects(circleObjects, pointList2, getWidth());
                                 if (capturedObjects2 != null) {
-                                    Toast.makeText(mContext, "The object is inside.", Toast.LENGTH_SHORT).show();
                                     mergeObjects(capturedObjects2);
                                 } else {
-                                    Toast.makeText(mContext, "The object is outside.", Toast.LENGTH_SHORT).show();
                                     playSound(failSoundId);
                                 }
                                 DrawnShape newShape = new DrawnShape(pointList2, paintColor2, this);
@@ -500,8 +514,16 @@ public class GameView extends SurfaceView {
                 case MotionEvent.ACTION_DOWN:
                     gameStarted = true;
             }
-
+        } else if (gameStarted && gameFinished){
+            int action = MotionEventCompat.getActionMasked(event);
+            switch (action){
+                case MotionEvent.ACTION_DOWN:
+                    if(event.getX() < getWidth() - dpFromPixel(10) && event.getX() > dpFromPixel(10) && event.getY() < getHeight() -dpFromPixel(10) && event.getY() > getHeight() - getHeight()/5){
+                        resetGame();
+                    }
+            }
         }
+
         return true;
     }
 
@@ -554,7 +576,7 @@ public class GameView extends SurfaceView {
                 circleObjects.remove(object);
             }
 
-            score += involvedObjects.size()-1;
+            merges += involvedObjects.size();
 
             playSound(mergeSoundId);
         }
@@ -562,11 +584,13 @@ public class GameView extends SurfaceView {
 
     public void pauseGame(){
         gameStarted = false;
-        gameLoop.setRunning(false);
+        gamePaused = true;
+        //gameLoop.setRunning(false);
     }
 
     public void resumeGame(){
-        //gameStarted = false;
+        gameStarted = true;
+        gamePaused = false;
         //gameLoop.setRunning(true);
     }
 
@@ -574,4 +598,13 @@ public class GameView extends SurfaceView {
         final float scale = getResources().getDisplayMetrics().density;
         return pixelValue * scale + 0.5f;
     }
+
+
+    private String getCurrentTime(){
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+        Date now = new Date();
+        String dateString = sdf.format(now);
+        return dateString;
+    }
+
 }

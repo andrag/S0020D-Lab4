@@ -104,8 +104,8 @@ public class CircleObject {
 
     private void setNewSpeed(){
         //Random rand = new Random();
-        speedX = 8 - rand.nextInt(15);
-        speedY = 8 - rand.nextInt(15);
+        speedX = 4 - rand.nextInt(9);
+        speedY = 4 - rand.nextInt(9);
         speedX = (int)gameView.dpFromPixel(speedX);
         speedY = (int)gameView.dpFromPixel(speedY);
     }

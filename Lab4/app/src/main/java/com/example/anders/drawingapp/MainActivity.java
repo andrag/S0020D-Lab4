@@ -5,23 +5,18 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import java.util.ArrayList;
 
 public class MainActivity extends ActionBarActivity {
 
     private GameView gameView;
-    private ArrayList<CircleObject> loadObjects;
-
+    private boolean executeOnResume = false;
+    private boolean executeOnStart = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_main);
-        //loadObjects = new ArrayList<CircleObject>();
-        gameView = new GameView(this);//, loadObjects);
+        gameView = new GameView(this);
         setContentView(gameView);
-
-        //drawView = (GameView) findViewById(R.id.drawing);
     }
 
     @Override
@@ -50,13 +45,42 @@ public class MainActivity extends ActionBarActivity {
     protected void onPause() {
         super.onPause();
         gameView.pauseGame();
-
-
     }
 
     @Override
     protected void onPostResume() {
         super.onPostResume();
+        //gameView.resumeGame();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(executeOnResume){
+            gameView.resumeGame();
+        }
+        else executeOnResume = true;
+
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        gameView.pauseGame();
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
         gameView.resumeGame();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if(executeOnStart){
+            gameView.resumeGame();
+        }
+        else executeOnStart = true;
     }
 }

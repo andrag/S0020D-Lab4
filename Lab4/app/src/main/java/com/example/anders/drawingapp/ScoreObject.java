@@ -1,18 +1,20 @@
 package com.example.anders.drawingapp;
 
+import java.io.Serializable;
+
 /**
  * Created by Anders on 2016-03-15.
  */
-public class ScoreObject implements Comparable<ScoreObject>{
+public class ScoreObject implements Comparable<ScoreObject>, Serializable{
 
-    public String date;
+    public String time;
     public int totalScore, score, finishTime;
 
-    public ScoreObject(int totalScore, long finishTime, int score, String date){
+    public ScoreObject(int totalScore, long finishTime, int score, String time){
         this.totalScore = totalScore;
         this.finishTime = (int)finishTime;
         this.score = score;
-        this.date = date;
+        this.time = time;
 
     }
 

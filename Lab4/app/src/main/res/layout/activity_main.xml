@@ -6,7 +6,7 @@
     android:orientation="vertical"
     tools:context=".MainActivity" >
 
-    <!-- Our drawing area-->
+    <!-- Our gaming area-->
     <com.example.anders.drawingapp.GameView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -16,6 +16,7 @@
         android:layout_marginRight="5dp"
         android:layout_marginTop="3dp"
         android:layout_weight="1"
-        android:background="#FFFFFFFF"/>
+        android:background="#FFFFFFFF"
+        />
 
 </LinearLayout>
