@@ -1,16 +1,17 @@
-package com.example.anders.lab4;
+package com.example.anders.lab4.game_engine;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.example.anders.lab4.R;
+
 
 public class MainActivity extends ActionBarActivity {
 
     private GameView gameView;
     private boolean executeOnResume = false;
-    private boolean executeOnStart = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

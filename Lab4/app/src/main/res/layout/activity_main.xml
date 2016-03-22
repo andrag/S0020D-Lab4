@@ -4,10 +4,10 @@
     android:layout_height="match_parent"
     android:background="#FFCCCCCC"
     android:orientation="vertical"
-    tools:context=".MainActivity" >
+    tools:context=".game_engine.MainActivity" >
 
     <!-- Our gaming area-->
-    <com.example.anders.lab4.GameView
+    <com.example.anders.lab4.game_engine.GameView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:id="@+id/drawing"

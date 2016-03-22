@@ -1,7 +1,7 @@
-package com.example.anders.lab4;
+package com.example.anders.lab4.data;
 
 import android.graphics.PointF;
-
+import com.example.anders.lab4.graphics.CircleObject;
 import java.util.ArrayList;
 
 /**
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 public class CalculatingClass {
 
 
-    //Calculates a new radius based on the sizes of the CircleObjects that are to be mashed together
+    //Calculates a new radius and other values based on the sizes of the CircleObjects that are to be merged together
     //http://www.geomidpoint.com/calculation.html
     public static Object[] newObjectValues(ArrayList<CircleObject> involvedObjects){
         double area = 0;
@@ -40,7 +40,7 @@ public class CalculatingClass {
         return returnArray;
     }
 
-    //Unit test this method!
+    //Checks if the latest line(made up of points) cross any other line in the array of points
     public static synchronized boolean crossCheck(ArrayList<PointF> currentList, ArrayList<PointF> otherList, boolean lastLine){
         if(currentList.size() > 2 ) {//Need at least one segment stored
 
@@ -105,7 +105,7 @@ public class CalculatingClass {
 
 
 
-    //Need a unit test for this one!
+    //Checks if two lines intersect each other
     private static boolean isIntersecting(PointF a, PointF b, PointF c, PointF d){
         float denominator = (a.x - b.x)*(c.y - d.y) - (a.y - b.y)*(c.x - d.x);
         if(denominator == 0) return false; //The lines are parallel. What if they are on the same place?
@@ -130,6 +130,7 @@ public class CalculatingClass {
     }
 
     //http://alienryderflex.com/polygon/
+    //Checks whether a specific point resides within a simple polygon
     public static boolean isPointInPolygon(CircleObject object, ArrayList<PointF> list, int screenWidth){
         /* The Algorithm
             1. Get the objects y-coordinate
@@ -163,6 +164,8 @@ public class CalculatingClass {
         else return true;
     }
 
+
+    //This method performs the Point-in-Polygon algorithm for every CircleObject
     public static ArrayList<CircleObject> checkObjects(ArrayList<CircleObject> objectList, ArrayList<PointF> pointList, int screenWidth){
         //Array to fill with circled objects if same color
         ArrayList<CircleObject> circledObjects = new ArrayList<CircleObject>();

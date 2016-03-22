@@ -1,4 +1,4 @@
-package com.example.anders.lab4;
+package com.example.anders.lab4.game_engine;
 
 import android.annotation.SuppressLint;
 import android.graphics.Canvas;

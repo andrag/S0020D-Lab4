@@ -1,8 +1,9 @@
-package com.example.anders.lab4;
+package com.example.anders.lab4.graphics;
 
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
+import com.example.anders.lab4.game_engine.GameView;
 
 import java.util.ArrayList;
 

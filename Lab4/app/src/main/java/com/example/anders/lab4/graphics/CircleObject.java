@@ -1,8 +1,7 @@
-package com.example.anders.lab4;
+package com.example.anders.lab4.graphics;
 
-import android.graphics.Bitmap;
 import android.graphics.Color;
-
+import com.example.anders.lab4.game_engine.GameView;
 import java.util.Random;
 
 /**
@@ -10,13 +9,13 @@ import java.util.Random;
  */
 public class CircleObject {
 
-    int color, weight, colorDecider, speedX, speedY;
-    long changeInterval;
-    float x, y, radius;
-    double area;
+    public int color, weight, colorDecider, speedX, speedY;
+    public long changeInterval;
+    public float x, y, radius;
+    public double area;
     Random rand;
     GameView gameView;
-    Bitmap bitmap;
+
 
     public CircleObject(GameView view, float x, float y, int color){
         this.gameView = view;
@@ -35,7 +34,7 @@ public class CircleObject {
     }
 
 
-    //Method for setting the color from a given random value and setting the type used for comparing colors in the point in polygon algorithm
+    //Method for setting the color from a given random value
     private void setColor(int color){
         switch (color){
             case 1:
@@ -56,11 +55,10 @@ public class CircleObject {
         }
     }
 
-    public void update(int height, int width){
+    public void update(){
         changeInterval++;
 
         if(x > gameView.getWidth() - speedX || x + speedX < 0 || changeInterval > 500) {
-            //x = gameView.getWidth() - 2*radius;
             speedX = -speedX;
         }
         x = x + speedX;
@@ -72,7 +70,6 @@ public class CircleObject {
             setChangeInterval();
             setNewSpeed();
         }
-
         y = y +speedY;
     }
 
@@ -98,12 +95,10 @@ public class CircleObject {
     }
 
     private void setChangeInterval(){
-        //Random rand = new Random();
         changeInterval = rand.nextInt(200);
     }
 
     private void setNewSpeed(){
-        //Random rand = new Random();
         speedX = 4 - rand.nextInt(9);
         speedY = 4 - rand.nextInt(9);
         speedX = (int)gameView.dpFromPixel(speedX)/weight;

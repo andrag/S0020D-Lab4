@@ -10,7 +10,7 @@
         android:theme="@style/AppTheme" >
         <activity
             android:screenOrientation="portrait"
-            android:name="com.example.anders.lab4.MainActivity"
+            android:name=".game_engine.MainActivity"
             android:label="Bubble Merger" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

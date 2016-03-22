@@ -1,4 +1,4 @@
-package com.example.anders.lab4;
+package com.example.anders.lab4.game_engine;
 
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -16,6 +16,13 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Bitmap;
 import android.view.MotionEvent;
+
+import com.example.anders.lab4.data.CalculatingClass;
+import com.example.anders.lab4.graphics.CircleObject;
+import com.example.anders.lab4.graphics.DrawnShape;
+import com.example.anders.lab4.R;
+import com.example.anders.lab4.data.ScoreObject;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,7 +33,7 @@ import java.util.Random;
 /**
  * Created by Anders on 2016-02-27.
  */
-//One of the purposes of the SurfaceView class is to provide a surface in which the GameLoop thread can render into the screen.
+
 public class GameView extends SurfaceView {
 
     private static GameLoop gameLoop;
@@ -70,7 +77,7 @@ public class GameView extends SurfaceView {
 
 
     //Constructor
-    public GameView(Context context){//, ArrayList<CircleObject> loadObjects) {//, AttributeSet attrSet){
+    public GameView(Context context){
         super(context);
 
         drawnShapes = new ArrayList<DrawnShape>();
@@ -213,11 +220,6 @@ public class GameView extends SurfaceView {
         return true;
     }
 
-    private void startGame() {
-        gameLoop.setRunning(true);
-        gameLoop.start();
-    }
-
 
     @Override
     protected void onDraw(Canvas canvas) {
@@ -229,7 +231,7 @@ public class GameView extends SurfaceView {
                     synchronized (circleObjects){
                         for (CircleObject object : circleObjects) {//Concurrent modification exception at finish!
                             objectPaint.setColor(object.color);
-                            object.update(getWidth(), getHeight());
+                            object.update();
                             canvas.drawCircle(object.x, object.y, object.radius, objectPaint);
                         }
                     }
@@ -243,8 +245,8 @@ public class GameView extends SurfaceView {
                 }
                 objectPaint.setColor(Color.BLACK);
                 objectPaint.setTextSize(dpFromPixel(20));
-                canvas.drawText("Merges: " + merges, 10 * (getWidth() / 12), 11 * (getHeight() / 12), objectPaint);
-                canvas.drawText("Time: " + (currentTime - startTime) / 1000, 6 * (getWidth() / 12), 11 * (getHeight() / 12), objectPaint);
+                canvas.drawText("Merges: " + merges, getWidth() - dpFromPixel(150), 11 * (getHeight() / 12), objectPaint);
+                canvas.drawText("Time: " + (currentTime - startTime) / 1000, getWidth() - dpFromPixel(300), 11 * (getHeight() / 12), objectPaint);
 
                 if(hasFinished()){
                     gameFinished = true;
@@ -279,7 +281,6 @@ public class GameView extends SurfaceView {
 
     private void addToHighScore(){
         finishTime = (System.currentTimeMillis() - startTime)/1000;
-        //if(merges == 0) merges = 1;
         if(finishTime == 0)finishTime = 1;//Avoid having less CircleObjects than 6 since we have six colors.
         int totalScore = (merges*100)/(int)finishTime;
         currentTime = System.currentTimeMillis();
@@ -345,12 +346,12 @@ public class GameView extends SurfaceView {
 
     private void fadeAnimation(Canvas canvas) {
         synchronized (drawnShapes){
-            for (DrawnShape shape : drawnShapes) {//ConcurrentModificationException
+            for (DrawnShape shape : drawnShapes) {
                 if (shape.isVisible) {
                     canvas.drawPath(shape.getPath(), shape.getPaint());
                     shape.decreaseOpacity();
                     if (!shape.isVisible)
-                        shapesToRemove.add(drawnShapes.indexOf(shape));//Should be done faster with index for loop?
+                        shapesToRemove.add(drawnShapes.indexOf(shape));
                 }
             }
             if (!shapesToRemove.isEmpty()) {
@@ -387,7 +388,6 @@ public class GameView extends SurfaceView {
                             break;
                         } else if (pointList2.isEmpty()) {
                             pointer_2_id = event.getPointerId(index);//This should not be ever changing.
-                            //drawPath2.moveTo(event.getX(index), event.getY(index));
                             PointF point = new PointF(event.getX(index), event.getY(index));
                             pointList2.add(point);
                             break;
@@ -399,7 +399,6 @@ public class GameView extends SurfaceView {
                     case MotionEvent.ACTION_MOVE:
                         for (int i = 0; i < nmbrOfPointersDown; i++) {
                             if (event.getPointerId(i) == pointer_1_id) {
-                                //drawPath1.lineTo(event.getX(i), event.getY(i));
                                 PointF point = new PointF(event.getX(i), event.getY(i));
                                 pointList1.add(point);
                                 if (CalculatingClass.crossCheck(pointList1, pointList2, false)) {
@@ -573,8 +572,10 @@ public class GameView extends SurfaceView {
 
             circleObjects.add(newObject);
 
-            for(CircleObject object : involvedObjects){
-                circleObjects.remove(object);
+            synchronized (circleObjects){
+                for(CircleObject object : involvedObjects){
+                    circleObjects.remove(object);
+                }
             }
 
             merges += involvedObjects.size();
