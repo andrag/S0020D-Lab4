@@ -1,4 +1,4 @@
-package com.example.anders.drawingapp;
+package com.example.anders.lab4;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -47,11 +47,6 @@ public class MainActivity extends ActionBarActivity {
         gameView.pauseGame();
     }
 
-    @Override
-    protected void onPostResume() {
-        super.onPostResume();
-        //gameView.resumeGame();
-    }
 
     @Override
     protected void onResume() {
@@ -61,26 +56,5 @@ public class MainActivity extends ActionBarActivity {
         }
         else executeOnResume = true;
 
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        gameView.pauseGame();
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        gameView.resumeGame();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if(executeOnStart){
-            gameView.resumeGame();
-        }
-        else executeOnStart = true;
     }
 }

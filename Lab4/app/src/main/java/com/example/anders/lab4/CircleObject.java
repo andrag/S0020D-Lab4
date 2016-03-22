@@ -1,4 +1,4 @@
-package com.example.anders.drawingapp;
+package com.example.anders.lab4;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -106,8 +106,8 @@ public class CircleObject {
         //Random rand = new Random();
         speedX = 4 - rand.nextInt(9);
         speedY = 4 - rand.nextInt(9);
-        speedX = (int)gameView.dpFromPixel(speedX);
-        speedY = (int)gameView.dpFromPixel(speedY);
+        speedX = (int)gameView.dpFromPixel(speedX)/weight;
+        speedY = (int)gameView.dpFromPixel(speedY)/weight;
     }
 
 }

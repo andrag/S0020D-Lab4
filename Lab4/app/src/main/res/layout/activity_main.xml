@@ -7,7 +7,7 @@
     tools:context=".MainActivity" >
 
     <!-- Our gaming area-->
-    <com.example.anders.drawingapp.GameView
+    <com.example.anders.lab4.GameView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:id="@+id/drawing"

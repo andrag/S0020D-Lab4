@@ -1,10 +1,8 @@
-package com.example.anders.drawingapp;
+package com.example.anders.lab4;
 
-import android.graphics.Point;
 import android.graphics.PointF;
 
 import java.util.ArrayList;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * Created by Anders on 2016-03-04.
@@ -41,21 +39,6 @@ public class CalculatingClass {
 
         return returnArray;
     }
-
-
-    //Line intersection algorithm
-    /*  1. Take the two arrays containing the points
-        2. Access them synchronized? Must be in onTouch as well I guess
-        3. Implement the intersection detection algorithm with the last line added against all others.
-            1. currentLine = Last point and next last point
-            2. Make a boundingbox of this? Can this be made someplace else?
-            3. Algorithm:
-                1. For-loop through array 1
-                    if lineIntersects(currentLine, array.get(i).x, array.get(i).y){
-                        return true;
-                    }
-                    return false;
-     */
 
     //Unit test this method!
     public static synchronized boolean crossCheck(ArrayList<PointF> currentList, ArrayList<PointF> otherList, boolean lastLine){
@@ -154,7 +137,6 @@ public class CalculatingClass {
             3. Calculate how many times each line intersects with lines contained in the list
             4. If it intersects an odd number of times, the point lies within the drawn shape
             5 (only test edges for intersection if they contain the specific y-coordinate
-            6. I believe it should be enough to check only one side of the object.... Try it.
          */
         PointF objectPosition = new PointF(object.x, object.y);
         PointF screenLeft = new PointF(0, object.y);
@@ -166,7 +148,7 @@ public class CalculatingClass {
         for(int i = 0; i < list.size()-1; i++){
             //Check if the objects y-coordinate is within the interval of the line segment that is checked for intersection
 
-            //The following check doesnät work for some wierd reason...
+            //The following check doesn't work for some weird reason...
             //if(object.y >= Math.min(list.get(i).y, list.get(i+1).y) && object.y <= Math.max(list.get(i).y, list.get(i).y)){
                 if(isIntersecting(objectPosition, screenLeft, list.get(i), list.get(i+1))) intersectionsLeft++;
                 else if(isIntersecting(objectPosition, screenRight, list.get(i), list.get(i+1))) intersectionsRight++;
@@ -208,19 +190,4 @@ public class CalculatingClass {
         }
 
     }
-
-
-    /*public static ArrayList<ScoreObject> sortHighScore(ArrayList<ScoreObject> highScore){
-        if(highScore.size() > 1){
-            int x;
-            int j;
-            for(int i = 1; i < highScore.size(); i++){
-                x = highScore.get(i);
-                j = i - 1;
-                while( j >= 0 && highScore.get(j) > x){
-                    highScore.i
-                }
-            }
-        }
-    }*/
 }

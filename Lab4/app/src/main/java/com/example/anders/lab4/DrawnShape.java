@@ -1,4 +1,4 @@
-package com.example.anders.drawingapp;
+package com.example.anders.lab4;
 
 import android.graphics.Paint;
 import android.graphics.Path;

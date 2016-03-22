@@ -1,4 +1,4 @@
-package com.example.anders.drawingapp;
+package com.example.anders.lab4;
 
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -50,7 +50,7 @@ public class GameView extends SurfaceView {
     private int pointer_1_id = INVALID_ID;
     private int pointer_2_id = INVALID_ID;
     private final int MAX_FINGERS = 2;
-    private final int NUMBER_OF_OBJECTS = 5;
+    private final int NUMBER_OF_OBJECTS = 10;
     private int merges = 0;
     private ArrayList<ScoreObject> highScore;
     private ArrayList<PointF> pointList1, pointList2;
@@ -157,7 +157,7 @@ public class GameView extends SurfaceView {
     }
 
     private void setupCircleObjects() {
-        if(circleObjects.isEmpty()){
+        if(circleObjects.isEmpty()){//To not create new CircleObjects when we resume the game from a paused state
             Random rand = new Random();
             float x, y;
             int color;
@@ -221,45 +221,46 @@ public class GameView extends SurfaceView {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        if (gameStarted && !gameFinished) {
-            currentTime = System.currentTimeMillis();
-            canvas.drawColor(Color.WHITE);
-            if (!circleObjects.isEmpty()) {
-                synchronized (circleObjects){
-                    for (CircleObject object : circleObjects) {//Concurrent modification exception at finish!
-                        objectPaint.setColor(object.color);
-                        object.update(getWidth(), getHeight());
-                        canvas.drawCircle(object.x, object.y, object.radius, objectPaint);
+        if(!gamePaused){
+            if (gameStarted && !gameFinished) {
+                currentTime = System.currentTimeMillis();
+                canvas.drawColor(Color.WHITE);
+                if (!circleObjects.isEmpty()) {
+                    synchronized (circleObjects){
+                        for (CircleObject object : circleObjects) {//Concurrent modification exception at finish!
+                            objectPaint.setColor(object.color);
+                            object.update(getWidth(), getHeight());
+                            canvas.drawCircle(object.x, object.y, object.radius, objectPaint);
+                        }
                     }
+                }
+
+                drawShapes(canvas);
+                if (!drawPath1.isEmpty()) canvas.drawPath(drawPath1, drawPaint1);
+                if (!drawPath2.isEmpty()) canvas.drawPath(drawPath2, drawPaint2);
+                if (!drawnShapes.isEmpty()) {
+                    fadeAnimation(canvas);
+                }
+                objectPaint.setColor(Color.BLACK);
+                objectPaint.setTextSize(dpFromPixel(20));
+                canvas.drawText("Merges: " + merges, 10 * (getWidth() / 12), 11 * (getHeight() / 12), objectPaint);
+                canvas.drawText("Time: " + (currentTime - startTime) / 1000, 6 * (getWidth() / 12), 11 * (getHeight() / 12), objectPaint);
+
+                if(hasFinished()){
+                    gameFinished = true;
+                    addToHighScore();
                 }
             }
 
-            drawShapes(canvas);
-            if (!drawPath1.isEmpty()) canvas.drawPath(drawPath1, drawPaint1);
-            if (!drawPath2.isEmpty()) canvas.drawPath(drawPath2, drawPaint2);
-            if (!drawnShapes.isEmpty()) {
-                fadeAnimation(canvas);
+            if(!gameStarted && !gameFinished) {
+                canvas.drawColor(Color.WHITE);
+                canvas.drawBitmap(splashScreen, getWidth()/2 - splashScreen.getWidth()/2, 0, objectPaint);
             }
-            objectPaint.setColor(Color.BLACK);
-            objectPaint.setTextSize(dpFromPixel(20));
-            canvas.drawText("Merges: " + merges, 10 * (getWidth() / 12), 11 * (getHeight() / 12), objectPaint);
-            canvas.drawText("Time: " + (currentTime - startTime) / 1000, 6 * (getWidth() / 12), 11 * (getHeight() / 12), objectPaint);
-
-            if(hasFinished()){
-                gameFinished = true;
-                addToHighScore();
+            if(gameFinished && gameStarted){
+                drawHighScore(canvas);
             }
+            super.onDraw(canvas);
         }
-
-        if(!gameStarted && !gameFinished && !gamePaused) {
-            canvas.drawColor(Color.WHITE);
-            canvas.drawBitmap(splashScreen, getWidth()/2 - splashScreen.getWidth()/2, 0, objectPaint);
-        }
-        if(gameFinished && gameStarted){
-            drawHighScore(canvas);
-        }
-        super.onDraw(canvas);
-
     }
 
 
@@ -583,13 +584,13 @@ public class GameView extends SurfaceView {
     }
 
     public void pauseGame(){
-        gameStarted = false;
+        //gameStarted = false;
         gamePaused = true;
         //gameLoop.setRunning(false);
     }
 
     public void resumeGame(){
-        gameStarted = true;
+        //gameStarted = true;
         gamePaused = false;
         //gameLoop.setRunning(true);
     }
